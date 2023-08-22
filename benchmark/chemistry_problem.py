@@ -99,14 +99,15 @@ class Chemistry(ChemistryFunction):
         print("original net: ", net)
         print("x: ", x)
 
-        for i in range(0, int(len(net) / 2)):
-            if x[i] == 1:
-                net[i] = 1 - net[i]
-
         energy = []
         n_randnet = 0
         while n_randnet < 10:
+            # randomize selected single-qubit gates
+            for i in range(0, int(len(net) / 2)):
+                if x[i] == 1:
+                    net[i] = random.choice([0, 1])
 
+            # randomize selected two-qubit gates
             for i in range(int(len(net) / 2), len(net)):
                 if x[i] == 1:
                     net[i] = random.choice([0, 1, 2, 3, 4, 5])

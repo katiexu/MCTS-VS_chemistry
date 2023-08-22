@@ -17,7 +17,7 @@ def translator(net):
 
     # num of layer repetitions
     layer_repe = [1, 5, 7]
-    updated_design['layer_repe'] = layer_repe[0]
+    updated_design['layer_repe'] = layer_repe[1]
 
     # categories of single-qubit parametric gates
     for i in range(args.n_qubits):
@@ -132,22 +132,14 @@ class Chemistry(ChemistryFunction):
                 # print(qml.draw(quantum_net)(q_params, design))
                 return qml.expval(hamiltonian)
 
-            # for i in range(5):
-            #     q_params = 2 * pi * np.random.rand(design['layer_repe'] * args.n_qubits * 2)
-            #     opt = qml.GradientDescentOptimizer(stepsize=0.4)
-            #
-            #     for n in range(50):
-            #         q_params, prev_energy = opt.step_and_cost(cost_fn, q_params)
-            #         print(f"--- Step: {n}, Energy: {cost_fn(q_params):.8f}")
-            #     energy.append(cost_fn(q_params))
+            for i in range(5):
+                q_params = 2 * pi * np.random.rand(design['layer_repe'] * args.n_qubits * 2)
+                opt = qml.GradientDescentOptimizer(stepsize=0.4)
 
-            q_params = 2 * pi * np.random.rand(design['layer_repe'] * args.n_qubits * 2)
-            opt = qml.GradientDescentOptimizer(stepsize=0.4)
-
-            q_params, prev_energy = opt.step_and_cost(cost_fn, q_params)
-            # print(f"--- Step: {n}, Energy: {cost_fn(q_params):.8f}")
-
-            energy.append(cost_fn(q_params))
+                for n in range(50):
+                    q_params, prev_energy = opt.step_and_cost(cost_fn, q_params)
+                    # print(f"--- Step: {n}, Energy: {cost_fn(q_params):.8f}")
+                energy.append(cost_fn(q_params))
 
             n_randnet += 1
 

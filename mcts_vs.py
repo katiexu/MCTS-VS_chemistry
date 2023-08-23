@@ -8,6 +8,8 @@ import random
 from benchmark import get_problem
 from MCTSVS.MCTS_chemistry import MCTS
 from utils import save_args
+import csv
+import os
 
 
 parser = argparse.ArgumentParser()
@@ -55,6 +57,11 @@ save_args(
     args.seed,
     args
 )
+
+if os.path.isfile('results.csv') == False:
+    with open('results.csv', 'w+', newline='') as res:
+        writer = csv.writer(res)
+        writer.writerow(['original net', 'x', 'Energy'])
 
 agent = MCTS(
     func=f,

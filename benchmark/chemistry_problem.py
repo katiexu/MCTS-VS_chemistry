@@ -4,6 +4,7 @@ from pennylane import numpy as np
 from math import pi
 from benchmark.Arguments import Arguments
 args = Arguments()
+import csv
 
 
 def translator(net):
@@ -95,28 +96,33 @@ class Chemistry(ChemistryFunction):
              random.choice([0, 1, 2, 4, 5]),
              random.choice([0, 1, 2, 3, 5]),
              random.choice([0, 1, 2, 3, 4])]
-        net = q + p
-        print("original net: ", net)
+        original_net = q + p
+        print("original net: ", original_net)
         print("x: ", x)
 
         energy = []
+        randomized_net = [0] * (args.n_qubits * 2)
         n_randnet = 0
         while n_randnet < 10:
             # randomize selected single-qubit gates
-            for i in range(0, int(len(net) / 2)):
+            for i in range(0, args.n_qubits):
                 if x[i] == 1:
-                    net[i] = random.choice([0, 1])
+                    randomized_net[i] = random.choice([0, 1])
+                else:
+                    randomized_net[i] = original_net[i]
 
             # randomize selected two-qubit gates
-            for i in range(int(len(net) / 2), len(net)):
+            for i in range(args.n_qubits, args.n_qubits * 2):
                 if x[i] == 1:
-                    net[i] = random.choice([0, 1, 2, 3, 4, 5])
-                while net[i] == i - int(len(net) / 2):
-                    net[i] = random.choice([0, 1, 2, 3, 4, 5])
+                    randomized_net[i] = random.choice([0, 1, 2, 3, 4, 5])
+                    while randomized_net[i] == i - args.n_qubits:
+                        randomized_net[i] = random.choice([0, 1, 2, 3, 4, 5])
+                else:
+                    randomized_net[i] = original_net[i]
 
-            print("random net: ", net)
+            print("randomized net: ", randomized_net)
 
-            design = translator(net)
+            design = translator(randomized_net)
 
             symbols = ["H", "H", "H"]
             coordinates = np.array([0.028, 0.054, 0.0, 0.986, 1.610, 0.0, 1.855, 0.002, 0.0])
@@ -144,7 +150,12 @@ class Chemistry(ChemistryFunction):
             n_randnet += 1
 
         result = np.mean(energy)
-        print("average energy: ", result)
+        result = abs(result)
+        print("average absolute energy: ", result)
+
+        with open('results.csv', 'a+', newline='') as res:
+            writer = csv.writer(res)
+            writer.writerow([original_net, x, result])
 
         return result
 

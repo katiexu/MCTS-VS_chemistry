@@ -2,9 +2,10 @@ import random
 import pennylane as qml
 from pennylane import numpy as np
 from math import pi
-from benchmark.Arguments import Arguments
+from Arguments import Arguments
 args = Arguments()
 import csv
+import pickle
 
 
 def translator(net):
@@ -122,35 +123,40 @@ class Chemistry(ChemistryFunction):
 
             print("randomized net: ", randomized_net)
 
-            design = translator(randomized_net)
+            with open('data/chemistry_dataset', 'rb') as file:
+                dataset = pickle.load(file)
+            if str(randomized_net) in dataset:
+                result = dataset.get(str(randomized_net))
 
-            symbols = ["H", "H", "H"]
-            coordinates = np.array([0.028, 0.054, 0.0, 0.986, 1.610, 0.0, 1.855, 0.002, 0.0])
+            else:
+                design = translator(randomized_net)
 
-            # Building the molecular hamiltonian for the trihydrogen cation
-            hamiltonian, qubits = qml.qchem.molecular_hamiltonian(symbols, coordinates, charge=1)
+                symbols = ["H", "H", "H"]
+                coordinates = np.array([0.028, 0.054, 0.0, 0.986, 1.610, 0.0, 1.855, 0.002, 0.0])
 
-            dev = qml.device("lightning.qubit", wires=args.n_qubits)
+                # Building the molecular hamiltonian for the trihydrogen cation
+                hamiltonian, qubits = qml.qchem.molecular_hamiltonian(symbols, coordinates, charge=1)
 
-            @qml.qnode(dev, diff_method="adjoint")
-            def cost_fn(theta):
-                quantum_net(theta, design)
-                # print(qml.draw(quantum_net)(q_params, design))
-                return qml.expval(hamiltonian)
+                dev = qml.device("lightning.qubit", wires=args.n_qubits)
 
-            for i in range(5):
-                q_params = 2 * pi * np.random.rand(design['layer_repe'] * args.n_qubits * 2)
-                opt = qml.GradientDescentOptimizer(stepsize=0.4)
+                @qml.qnode(dev, diff_method="adjoint")
+                def cost_fn(theta):
+                    quantum_net(theta, design)
+                    # print(qml.draw(quantum_net)(q_params, design))
+                    return qml.expval(hamiltonian)
 
-                for n in range(50):
-                    q_params, prev_energy = opt.step_and_cost(cost_fn, q_params)
-                    # print(f"--- Step: {n}, Energy: {cost_fn(q_params):.8f}")
-                energy.append(cost_fn(q_params))
+                for i in range(5):
+                    q_params = 2 * pi * np.random.rand(design['layer_repe'] * args.n_qubits * 2)
+                    opt = qml.GradientDescentOptimizer(stepsize=0.4)
+
+                    for n in range(50):
+                        q_params, prev_energy = opt.step_and_cost(cost_fn, q_params)
+                        # print(f"--- Step: {n}, Energy: {cost_fn(q_params):.8f}")
+                    energy.append(cost_fn(q_params))
 
             n_randnet += 1
 
-        result = np.mean(energy)
-        result = abs(result)
+        result = abs(np.mean(energy))
         print("average absolute energy: ", result)
 
         with open('results.csv', 'a+', newline='') as res:

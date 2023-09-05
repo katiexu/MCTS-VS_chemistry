@@ -16,20 +16,20 @@ class FunctionBenchmark:
         self.valid_idx = valid_idx
         self.lb = func.lb[0] * np.ones(dims)
         self.ub = func.ub[0] * np.ones(dims)
-        
+
         self.save_config = save_config
         self.tracker = Tracker(
             self.save_config['save_interval'],
             self.save_config
         )
-        
+
     def __call__(self, x):
         assert len(x) == self.dims
         result = self.func(x[self.valid_idx])
         self.tracker.track(result)
         return result
-    
-    
+
+
 class RLBenchmark:
     def __init__(self, func, dims, valid_idx, save_config):
         assert func.dims == len(valid_idx)
@@ -39,19 +39,19 @@ class RLBenchmark:
         self.lb = func.lb[0] * np.ones(dims)
         self.ub = func.ub[0] * np.ones(dims)
         self.save_config = save_config
-        
+
         self.counter = 0
         self.n_samples = 0
         self.start_time = time.time()
         self.curt_best = float('-inf')
         self.best_value_trace = []
-        
+
     def __call__(self, x):
         assert len(x) == self.dims
         result, n_samples = self.func(x[self.valid_idx])
         self.track(result, n_samples)
         return result
-    
+
     def track(self, result, n_samples):
         self.counter += 1
         self.n_samples += n_samples
@@ -63,7 +63,7 @@ class RLBenchmark:
             time.time() - self.start_time,
             self.n_samples
         ))
-        
+
         if self.counter % 50 == 0:
             df_data = pd.DataFrame(self.best_value_trace, columns=['x', 'y', 't', 'n_samples'])
             save_results(
@@ -73,7 +73,7 @@ class RLBenchmark:
                 self.save_config['seed'],
                 df_data,
             )
-    
+
 
 hartmann6 = Hartmann(6, True)
 levy10 = Levy(10, True)
@@ -86,14 +86,14 @@ def get_problem(func_name, save_config, seed=2021):
     if func_name in ['nasbench', 'rover', 'HalfCheetah', 'Walker2d', 'Hopper', 'chemistry']:
         if func_name in ['HalfCheetah', 'Walker2d', 'Hopper']:
             from benchmark.rl_benchmark import RLEnv
-            
+
         if func_name == 'nasbench':
             from benchmark.nas_benchmark import NasBench
             return FunctionBenchmark(NasBench(seed=seed), 36, list(range(36)), save_config)
         elif func_name == 'rover':
             return FunctionBenchmark(Rover(), 60, list(range(60)), save_config)
         elif func_name == 'HalfCheetah' or func_name == 'Walker2d':
-            return RLBenchmark(RLEnv(func_name+'-v2', seed), 102, list(range(102)), save_config)
+            return RLBenchmark(RLEnv(func_name + '-v2', seed), 102, list(range(102)), save_config)
         elif func_name == 'Hopper':
             return RLBenchmark(RLEnv('Hopper-v2', seed), 33, list(range(33)), save_config)
         elif func_name == 'chemistry':
@@ -112,7 +112,8 @@ def get_problem(func_name, save_config, seed=2021):
         elif func_name == 'nasbenchtrans':
             from benchmark.naslib_benchmark import NASLibBench
             dims = 24
-            return FunctionBenchmark(NASLibBench(name='transbench101_micro', seed=seed), dims, list(range(dims)), save_config)
+            return FunctionBenchmark(NASLibBench(name='transbench101_micro', seed=seed), dims, list(range(dims)),
+                                     save_config)
         elif func_name == 'nasbenchasr':
             from benchmark.naslib_benchmark import NASLibBench
             dims = 30
@@ -151,6 +152,6 @@ if __name__ == '__main__':
         'seed': 42
     }
     func = get_problem('levy10_50', save_config)
-    
+
     for _ in range(10):
         func(x)

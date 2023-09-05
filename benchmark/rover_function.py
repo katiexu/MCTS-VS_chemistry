@@ -1,5 +1,5 @@
 # from .rover_utils import RoverDomain, PointBSpline, ConstObstacleCost, NegGeom, AABoxes, UnionGeom, AdditiveCosts, \
-#     ConstCost
+    #     ConstCost
 import numpy as np
 
 
@@ -19,8 +19,8 @@ class NormalizedInputFn:
 
     def get_range(self):
         return np.array([np.zeros(self.x_range[0].shape[0]), np.ones(self.x_range[0].shape[0])])
-    
-    
+
+
 class ConstantOffsetFn:
     def __init__(self, fn_instance, offset):
         self.fn_instance = fn_instance
@@ -272,13 +272,13 @@ class Rover:
         f = ConstantOffsetFn(domain, f_max)
         f = NormalizedInputFn(f, raw_x_range)
         x_range = f.get_range()
-        
+
         self.f = f
         self.dims = 60
         self.lb = x_range[0]
         self.ub = x_range[1]
         self.opt_val = f_max
-        
+
     def __call__(self, x):
         assert len(x) == self.dims
         assert x.ndim == 1

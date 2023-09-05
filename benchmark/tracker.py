@@ -11,17 +11,17 @@ class Tracker:
         self.save_interval = save_interval
         self.save_config = save_config
         self.start_time = time.time()
-        
+
     def track(self, result):
         self.counter += 1
         if result > self.curt_best:
             self.curt_best = result
         self.best_value_trace.append((
-            self.counter, 
+            self.counter,
             self.curt_best,
             time.time() - self.start_time
         ))
-        
+
         if self.counter % self.save_interval == 0:
             df_data = pd.DataFrame(self.best_value_trace, columns=['x', 'y', 't'])
             save_results(
@@ -31,8 +31,8 @@ class Tracker:
                 self.save_config['seed'],
                 df_data,
             )
-        
-        
+
+
 def save_results(root_dir, algo, func, seed, df_data):
     os.makedirs(root_dir, exist_ok=True)
     save_dir = os.path.join(root_dir, func)

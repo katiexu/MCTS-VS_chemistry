@@ -1,17 +1,15 @@
 import torch
 import botorch
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import argparse
 import random
 from benchmark import get_problem
 from MCTSVS.MCTS_VS_chemistry import VSMCTS
-from utils import save_args
 import csv
 import os
 
 
+# MCTS-VS parameters
 parser = argparse.ArgumentParser()
 parser.add_argument('--func', default='chemistry', type=str,
                     choices=['hartmann6_300', 'hartmann6_500', 'levy10_100', 'levy10_300', 'nasbench', 'nasbench201', 'nasbench1shot1', 'nasbenchtrans', 'nasbenchasr', 'Hopper', 'Walker2d', 'chemistry'])
@@ -30,7 +28,6 @@ parser.add_argument('--dir_name', default=None, type=str)
 parser.add_argument('--postfix', default=None, type=str)
 parser.add_argument('--seed', default=2021, type=int)
 args = parser.parse_args()
-
 print(args)
 
 random.seed(args.seed)
@@ -38,30 +35,12 @@ np.random.seed(args.seed)
 botorch.manual_seed(args.seed)
 torch.manual_seed(args.seed)
 
-algo_name = 'mcts_vs_{}'.format(args.ipt_solver)
-if args.postfix is not None:
-    algo_name += ('_' + args.postfix)
-save_config = {
-    'save_interval': 50,
-    'root_dir': 'logs/' + args.root_dir,
-    'algo': algo_name,
-    'func': args.func if args.dir_name is None else args.dir_name,
-    'seed': args.seed
-}
-f = get_problem(args.func, save_config, args.seed)
+f = get_problem(args.func, args.seed)
 
-save_args(
-    'config/' + args.root_dir,
-    algo_name,
-    args.func if args.dir_name is None else args.dir_name,
-    args.seed,
-    args
-)
-
-if os.path.isfile('results.csv') == False:
-    with open('results.csv', 'w+', newline='') as res:
+if os.path.isfile('best_variables.csv') == False:
+    with open('best_variables.csv', 'w+', newline='') as res:
         writer = csv.writer(res)
-        writer.writerow(['original net', 'x', 'Energy'])
+        writer.writerow(['starting iteration #', 'num of iterations', 'best variables of current tree', 'best variables till now'])
 
 VSagent = VSMCTS(
     func=f,

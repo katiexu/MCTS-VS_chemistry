@@ -11,12 +11,12 @@ def translator(net):
     updated_design = {}
 
     # r = net[0]
-    q = net[0:12]
+    q = net[0:6]
     # c = net[8:15]
-    p = net[12:24]
+    p = net[6:12]
 
     # num of layer repetitions
-    layer_repe = 2
+    layer_repe = 5
     updated_design['layer_repe'] = layer_repe
 
     # categories of single-qubit parametric gates
@@ -34,7 +34,7 @@ def translator(net):
         # else:
         #     category = 'IsingZZ'
         if j == p[j]:
-            updated_design['enta' + str(j)] = (12)
+            updated_design['enta' + str(j)] = (6)
         else:
             updated_design['enta' + str(j)] = ([j, p[j]])
 
@@ -52,7 +52,7 @@ def quantum_net(q_params, design):
             else:
                 qml.RY(q_weights[layer][j][0], wires=j)
 
-            if current_design['enta' + str(j)] == 12:
+            if current_design['enta' + str(j)] == 6:
                 qml.RZ(q_weights[layer][j][1], wires=j)
             else:
                 qml.IsingZZ(q_weights[layer][j][1], wires=current_design['enta' + str(j)])
